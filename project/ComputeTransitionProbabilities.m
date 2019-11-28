@@ -1,4 +1,4 @@
-function P = ComputeTransitionProbabilities( stateSpace, map)
+function P = ComputeTransitionProbabilities(stateSpace, map)
 %COMPUTETRANSITIONPROBABILITIES Compute transition probabilities.
 % 	Compute the transition probabilities between all states in the state
 %   space for all control inputs.
@@ -24,11 +24,28 @@ function P = ComputeTransitionProbabilities( stateSpace, map)
 %           between all states in the state space for all control inputs.
 %           The entry P(i, j, l) represents the transition probability
 %           from state i to state j if control input l is applied.
-
 global GAMMA R P_WIND
 global FREE TREE SHOOTER PICK_UP DROP_OFF BASE
 global NORTH SOUTH EAST WEST HOVER
 global K TERMINAL_STATE_INDEX
+P = zeros(K, K, 3);
+for u = [NORTH, SOUTH, EAST, WEST, HOVER]
+    for i = size(stateSpace, 1)
+        %if !BoundsCheck(state, u, map) || TreesCheck(state, u, map)                
+    end
+end
 
 
+end
+
+
+function trees = TreesCheck(state, u, map)
+
+end
+
+function boundaries = BoundariesCheck(state, u, map)
+end
+
+function Pn = ComputeAngryResidentsCrashProbability(currentState, map)
+    
 end
