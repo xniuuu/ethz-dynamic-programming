@@ -18,6 +18,9 @@ function stateIndex = ComputeTerminalStateIndex(stateSpace, map)
 %       stateIndex:
 %           An integer that is the index of the terminal state in the
 %           stateSpace matrix
+[row_m col_n] = find(map == 4); %finding indexes of the terminal state
+index  = ismember(stateSpace,[row_m col_n 1],'rows');
+stateIndex = find (index);
 
 global DROP_OFF
                   
