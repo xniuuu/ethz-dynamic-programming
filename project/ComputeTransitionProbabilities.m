@@ -54,27 +54,29 @@ function trees = TreesCheck(i, u, map,stateSpace)
 %
 %
 %Output : true or false
+global TREE
+global NORTH SOUTH EAST WEST
 pos =[];
 cdt = [];
 pos = stateSpace(i,1:2); %actual position of the drone
-[treeM treeN] = find(map == TREE);
+[treeM, treeN] = find(map == TREE);
 cdt = [isequal(ismember([treeM treeN],pos + [0 1],'rows'), zeros(length([treeM treeN]),1));
     isequal(ismember([treeM treeN],pos - [0 1],'rows'), zeros(length([treeM treeN]),1));
     isequal(ismember([treeM treeN],pos + [1 0],'rows'), zeros(length([treeM treeN]),1));
     isequal(ismember([treeM treeN],pos - [1 0],'rows'), zeros(length([treeM treeN]),1))];
-if cdt(1) == 0 && u == 1 %check if there is a tree above
+if cdt(1) == 0 && u == NORTH %check if there is a tree above
     fprintf('Drone crashes into a tree');
     trees = true;
     return 
-elseif cdt(2) == 0 && u == 2 %check if there is a tree below
+elseif cdt(2) == 0 && u == SOUTH %check if there is a tree below
     fprintf('Drone crashes into a tree');
     trees = true;
     return
-elseif cdt(3) == 0 && u == 3 %check if there is a tree on the right
+elseif cdt(3) == 0 && u == EAST %check if there is a tree on the right
     fprintf('Drone crashes into a tree');
     trees = true;
     return
-elseif cdt(4) == 0 && u == 4 %check if there is a tree on the left
+elseif cdt(4) == 0 && u == WEST %check if there is a tree on the left
     fprintf('Drone crashes into a tree');
     trees = true;
     return
@@ -101,7 +103,7 @@ function boundaries = BoundariesCheck(i, u, stateSpace)
 %
 %
 %Output : true or false
-
+global NORTH SOUTH EAST WEST
 pos =[];
 cdt = [];
 %looking for the position of the drone
@@ -124,16 +126,15 @@ cdt = [isequal(ismember(boundMNorth,pos,'rows'), zeros(length(boundMNorth),1));
 if cdt(1) == 0 
     bound = boundMNorth;
     fprintf('Drone in north bound');
-    if u == 1
+    if u == NORTH
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
-    end
-    
+    end   
 elseif cdt(2) == 0
         bound = boundMSouth;
         fprintf('Drone in south bound');
-        if u == 2
+        if u == SOUTH
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
@@ -142,7 +143,7 @@ elseif cdt(2) == 0
 elseif cdt(3) == 0
         bound = boundNEast;
         fprintf('Drone in east bound');
-        if u == 3
+        if u == EAST
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
@@ -151,7 +152,7 @@ elseif cdt(3) == 0
 elseif cdt(4) == 0
         bound = boundNWest;
         fprintf('Drone in west bound');
-        if u == 4
+        if u == WEST
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
@@ -161,19 +162,19 @@ elseif cdt(5) == 0
         bound = boundCorners;
         fprintf('Drone in a corner');
         corner = ismember(boundCorners,pos,'rows')
-        if corner(1) == 1 && (u == 4 || u ==5)
+        if corner(1) == 1 && (u == WEST || u == HOVER)
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
-        elseif corner(2) == 1 && (u == 1 || u ==4)
+        elseif corner(2) == 1 && (u == NORTH || u == WEST)
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
-        elseif corner(3) == 1 && (u == 5 || u ==3)
+        elseif corner(3) == 1 && (u == HOVER || u == EAST)
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
-        elseif corner(4) == 1 && (u == 1 || u ==3)
+        elseif corner(4) == 1 && (u == NORTH || u == EAST)
             fprintf('Drone outside boundaries, crashes');
             boundaries = true;
             return
@@ -185,8 +186,19 @@ end
 
 end
 
-function 
-
 function Pn = ComputeAngryResidentsCrashProbability(currentState, map)
-    
+%Function ComputeAngryResidentsCrashProbability, commputes the probability
+%of crashing due to angry residents.
+%Inputs : 
+%currentState :current state (x,y,psi) of the drone.
+%map : the drones world (including angry residents and )
+%
+%
+%Output : The probabaility of crashing due to angry residents.
+global SHOOTER GAMMA R
+[shootersX, shootersY] = find(map == SHOOTER);
+shootersCoordinates = [shootersX, shootersY];
+d = vecnorm((repmat(currentState(1:2), size(shootersCoordinates, 1), 1) -...
+    shootersCoordinates).', 1).';
+Pn =  (d < R).' * (GAMMA ./ (d + 1));
 end
