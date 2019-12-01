@@ -32,10 +32,13 @@ P = zeros(K, K, 3);
 for u = [NORTH, SOUTH, EAST, WEST, HOVER]
     for i = size(stateSpace, 1)
         %if !BoundsCheck(state, u, map) || TreesCheck(state, u, map)                
+        for j = 
     end
 end
 
-
+%% Take into account what happens if we start at the home base and keep
+%% hovering.
+%% Take into account what happens if we are at the terminal state.
 end
 
 
@@ -45,6 +48,8 @@ end
 
 function boundaries = BoundariesCheck(state, u, map)
 end
+
+function 
 
 function Pn = ComputeAngryResidentsCrashProbability(currentState, map)
     
