@@ -186,7 +186,7 @@ end
 
 end
 
-function Pn = ComputeAngryResidentsCrashProbability(currentState, map)
+function Pr = ComputeAngryResidentsCrashProbability(currentState, map)
 %Function ComputeAngryResidentsCrashProbability, commputes the probability
 %of crashing due to angry residents.
 %Inputs : 
@@ -200,5 +200,5 @@ global SHOOTER GAMMA R
 shootersCoordinates = [shootersX, shootersY];
 d = vecnorm((repmat(currentState(1:2), size(shootersCoordinates, 1), 1) -...
     shootersCoordinates).', 1).';
-Pn =  (d < R).' * (GAMMA ./ (d + 1));
+Pr =  (d <= R).' * (GAMMA ./ (d + 1));
 end
