@@ -34,7 +34,7 @@ for u = [NORTH, SOUTH, EAST, WEST, HOVER]
         carry_state = stateSpace(i,3);
         stateSpace_red = stateSpace(stateSpace(:,3)==carry_state,:);
         %the stateSpace could be further reduced by introducing a filter
-        %ofr the 13 attainable states
+        %for the 13 attainable states
         %drone_range =
         if BoundariesCheck(i, u, stateSpace_red) || ~TreesCheck(i, u, map,stateSpace_red) 
             j = stateSpace(i,2);
@@ -42,11 +42,12 @@ for u = [NORTH, SOUTH, EAST, WEST, HOVER]
                 case NORTH
                     %Probabilities with wind
                     P_Crash=                    
-                    P(i,j,u) = P_WIND*(1/4)*(1-P_Tree)*(1-P_Bound)*(1-ComputeAngryResidentsCrashProbability(stateSpace(j,:), map))
+                    P(i,j,u) = P_WIND*(1/4)*(1-P_crash)*(1-ComputeAngryResidentsCrashProbability(stateSpace(j,:), map))
                     P(i+2,j,u) = 
                     P(i+1,j-1,u) = 
                     p(i+1,j+1,u) = 
                     %Probabilities without wind
+            end
         end
     end
 end
@@ -222,7 +223,7 @@ d = vecnorm((repmat(currentState(1:2), size(shootersCoordinates, 1), 1) -...
 Pr =  (d <= R).' * (GAMMA ./ (d + 1));
 end
 
-function P_Tree = ComputeCrashProbabilityWind(currentState,map)
+function P_Crash = ComputeCrashProbabilityWind(currentState,map)
 %Function that computes the probability of crashing due to a tree or the boundary in one of
 %the states attainable by wind
 end
