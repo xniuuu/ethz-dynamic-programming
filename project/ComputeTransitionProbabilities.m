@@ -92,13 +92,13 @@ end
 
 function pickup = Pickup(state, map)
 global PICK_UP
-    pickup = map(state(1), state(2)) == PICK_UP &...
-        state(3) == 0;
+pickup = map(state(1), state(2)) == PICK_UP &...
+    state(3) == 0;
 end
 
 function above = AboveHomeBaseWithoutPacakge(state, map)
 global BASE
-    above = (map(state(1), state(2)) == BASE) & (state(3) == 0);
+above = (map(state(1), state(2)) == BASE) & (state(3) == 0);
 end
 
 function ind = state2ind(state, stateSpace)
@@ -143,6 +143,7 @@ global SHOOTER GAMMA R
 shootersCoordinates = [shootersX, shootersY];
 d = vecnorm((repmat(currentState(1:2), size(shootersCoordinates, 1), 1) -...
     shootersCoordinates).', 1).';
-Pr = (d <= R).' * (GAMMA ./ (d + 1));
+Pr = (d <= R) .* (GAMMA ./ (d + 1));
+Pr = 1 - prod(1 - Pr);
 assert(Pr <= 1, 'Neighbour''s probability is <= 1');
 end
