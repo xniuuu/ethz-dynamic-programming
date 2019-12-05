@@ -10,3 +10,19 @@ for u = [NORTH, SOUTH, EAST, WEST, HOVER]
     disp(u);
     disp([row, col]);
 end
+
+%% Validate G matrix
+clc;
+clear G;
+load('exampleG.mat');
+GGroundTruth = G;
+G = ComputeStageCosts(stateSpace, map);
+assert(abs(GGroundTruth - G) > 1e-4,...
+    'G matrix is wrong.');
+
+%% Validate The Algorithms Implementation (V* is unique) 
+[JLp, ~] = LinearProgramming(P, G);
+[JVi, ~] = ValueIteration(P, G);
+[JPi, ~] = PolicyIteration(P, G);
+assert(range([JLp, JVi, JPi]) < 1e-3,...
+    'Discrepency between algorithms.');
