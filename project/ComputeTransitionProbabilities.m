@@ -148,8 +148,4 @@ Pr = 1 - prod(1 - Pr);
 assert(Pr <= 1, 'Neighbour''s probability is <= 1');
 end
 
-function P_Crash = ComputeCrashProbabilityWind(currentState,map)
-%Function that computes the probability of crashing due to a tree or the boundary in one of
-%the states attainable by wind
-end
 
