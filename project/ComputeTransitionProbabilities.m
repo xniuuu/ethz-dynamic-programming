@@ -25,7 +25,7 @@ function P = ComputeTransitionProbabilities(stateSpace, map)
 %           The entry P(i, j, l) represents the transition probability
 %           from state i to state j if control input l is applied.
 global P_WIND
-global DROP_OFF BASE PICK_UP
+global DROP_OFF BASE 
 global NORTH SOUTH EAST WEST HOVER
 global K
 P = zeros(K, K, 5);
@@ -51,7 +51,10 @@ for i = 1:size(stateSpace,1)
                 ~TreesCollision(stateAfterAction, map)
             nextStates = repmat(stateAfterAction, size(delta, 1), 1) +...
                 [delta(:, 2:end), zeros(size(delta, 1), 1)];
+            % The probability of surviving the current transition.
             survivalProbability = 0;
+            % The probabaility of arriving above the home-base without 
+            % actually dying along the way.
             driftedToHomeBaseProbability = 0;
             for k = [NORTH, SOUTH, EAST, WEST, HOVER]
                 if  ~OutOfBoundaries(nextStates(k, :), size(map)) &...
@@ -80,15 +83,11 @@ for i = 1:size(stateSpace,1)
             % Either there was no wind, but the neighbours killed you where
             % you planned to go (only via the action), or you arrived to
             % some other position through the wind and survived.
-            P(i, baseInd, u) = 1 - survivalProbability + driftedToHomeBaseProbability;
+            P(i, baseInd, u) = 1 - survivalProbability +...
+                driftedToHomeBaseProbability;
         end
     end
 end
-% What about pick up state? how should we change the 'carrying package'
-% thing
-% Take into account what happens if we start at the home base and keep
-% hovering.
-% What about hovering above the pickup with/out a packages
 end
 
 function pickup = Pickup(state, map)
