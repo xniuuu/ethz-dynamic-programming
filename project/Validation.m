@@ -17,8 +17,8 @@ clear G;
 load('exampleG.mat');
 GGroundTruth = G;
 G = ComputeStageCosts(stateSpace, map);
-assert(abs(GGroundTruth - G) > 1e-4,...
-    'G matrix is wrong.');
+[row, col] = find(abs(GGroundTruth - G) > 1e-4);
+disp([row, col]);
 
 %% Validate The Algorithms Implementation (V* is unique) 
 [JLp, ~] = LinearProgramming(P, G);
