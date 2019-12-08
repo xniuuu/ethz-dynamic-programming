@@ -38,39 +38,28 @@ global TERMINAL_STATE_INDEX
 % IMPORTANT: You can use the global variable TERMINAL_STATE_INDEX computed
 % in the ComputeTerminalStateIndex.m file (see main.m)
 %% Initializations
-
 %policy, at the terminal state the optimal input is hover
 policy = ones(1,K);
 policy(TERMINAL_STATE_INDEX) = HOVER;
-
 %cost and cost_to_go
 J = 1000*ones(1,K); 
 cost_to_go = ones(1,K);
-
-%iteration count
-it = 0;
 
 %error bound
 err = 1e-5;
 
 %% Value iteration
 while 1
-    %Iteration update
-    it = it + 1;
     %Value iteration step
      for i=1:K
         % One value iteration step for each state.
         [cost_to_go(i),policy(i)] = min( G(i,:) + J*squeeze(P(i,:,:)) );
      end  
-        
+     J = cost_to_go;
     % Check if cost has converged
     if (max(abs(J-cost_to_go)))/max(abs(cost_to_go)) < err
             % update cost and break
-            J = cost_to_go;
-            break;
-        else
-            % update cost
-            J = cost_to_go;
+        break;
     end    
 end
 
