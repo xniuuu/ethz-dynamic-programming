@@ -1,4 +1,4 @@
-function [ J_opt, u_opt_ind ] = LinearProgramming(P, G)
+function [J_opt, u_opt_ind] = LinearProgramming(P, G)
 %LINEARPROGRAMMING Linear Programming
 %   Solve a stochastic shortest path problem by Linear Programming.
 %
@@ -30,15 +30,43 @@ function [ J_opt, u_opt_ind ] = LinearProgramming(P, G)
 %       	input for each element of the state space. Mapping of the
 %       	terminal state is arbitrary (for example: HOVER).
 
-global K HOVER
+    global K
+    global NORTH SOUTH EAST WEST HOVER
+    global TERMINAL_STATE_INDEX
+    A = ConstructConstraintsMatrix(P);
+    b = ConstructConstraintsVector(G);
+    f = ones(K - 1, 1);
+    % Minus A because we're maximizing.
+    % Filter out inf costs and their corresponding transitions.
+    A = A(b ~= inf, :);
+    b = b(b ~= inf);
+    J_opt = linprog(-f, sparse(A), b, [], [],...
+        zeros(size(f)), Inf(size(f)));
+    J_opt = [J_opt(1:(TERMINAL_STATE_INDEX - 1));
+        0;
+        J_opt((TERMINAL_STATE_INDEX):end)];
+    V = zeros(K, 5);
+    for u = [NORTH, SOUTH, EAST, WEST, HOVER]
+        V(:, u) = G(:, u) + P(:, :, u) * J_opt;
+    end
+    [~, u_opt_ind] = min(V, [], 2);
+end
 
-%% Handle terminal state
-% Do yo need to do something with the teminal state before starting policy
-% iteration ?
-global TERMINAL_STATE_INDEX
-% IMPORTANT: You can use the global variable TERMINAL_STATE_INDEX computed
-% in the ComputeTerminalStateIndex.m file (see main.m)
+function b = ConstructConstraintsVector(G)
+    global K TERMINAL_STATE_INDEX
+    b = reshape(G(1:end ~= TERMINAL_STATE_INDEX, :).',...
+        (K - 1) * 5, 1);
+end
 
-
+function A = ConstructConstraintsMatrix(P)
+    global K TERMINAL_STATE_INDEX
+    % Filter out the terminal state.
+    PNew = P(1:end ~= TERMINAL_STATE_INDEX,...
+        1:end ~= TERMINAL_STATE_INDEX, :);
+    lhs = eye(K - 1, K - 1);
+    lhs = repmat(lhs, 1, 1, 5);
+    lhs = lhs - PNew;
+    A = permute(lhs, [3, 1, 2]);
+    A = reshape(A, (K - 1) * 5, K - 1);
 end
 
