@@ -35,7 +35,7 @@ generateRandomWorld = false;
 % Plotting options
 global PLOT_POLICY PLOT_COST
 PLOT_POLICY = true;
-PLOT_COST = false;
+PLOT_COST = true;
 
 %% Global problem parameters
 % IMPORTANT: Do not add or remove any global parameter in main.m
@@ -97,7 +97,7 @@ transitionProbabilitiesImplemented = true;
 stageCostsImplemented = true;
 valueIterationImplemented = false; 
 policyIterationImplemented = false;
-linearProgrammingImplemented = false;
+linearProgrammingImplemented = true;
 
 %% Compute the terminal state index
 global TERMINAL_STATE_INDEX
