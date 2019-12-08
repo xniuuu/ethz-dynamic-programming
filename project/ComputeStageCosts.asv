@@ -1,0 +1,84 @@
+function G = ComputeStageCosts(stateSpace, map)
+%COMPUTESTAGECOSTS Compute stage costs.
+% 	Compute the stage costs for all states in the state space for all
+%   control inputs.
+%
+%   G = ComputeStageCosts(stateSpace, map) 
+%   computes the stage costs for all states in the state space for all
+%   control inputs.
+%
+%   Input arguments:
+%
+%       stateSpace:
+%           A (K x 3)-matrix, where the i-th row represents the i-th
+%           element of the state space.
+%
+%       map:
+%           A (M x N)-matrix describing the world. With
+%           values: FREE TREE SHOOTER PICK_UP DROP_OFF BASE
+%
+%   Output arguments:
+%
+%       G:
+%           A (K x L)-matrix containing the stage costs of all states in
+%           the state space for all control inputs. The entry G(i, l)
+%           represents the expected stage cost if we are in state i and 
+%           apply control input l.
+
+    global GAMMA R P_WIND Nc
+    global FREE TREE SHOOTER PICK_UP DROP_OFF BASE
+    global NORTH SOUTH EAST WEST HOVER
+    global K
+    global TERMINAL_STATE_INDEX
+    
+%%%%%%%%
+    G = inf(K,5);
+%Setting the cost for terminal state
+    G(TERMINAL_STATE_INDEX,:)=0;
+    N = 1; %cost when no crash
+%looking for base index
+    [baseX, baseY] = find(map == BASE);
+    baseInd = state2ind([baseX, baseY, 0], stateSpace);
+    
+    for i = 1:size(stateSpace,1)
+        if (i==TERMINAL_STATE_INDEX)
+            continue;
+        end
+        for u = [NORTH SOUTH EAST WEST HOVER]
+            %if next to the base, need to separate the case of drift from
+            %the case when drone crashes
+        if nextToBase(stateSpace(i,:),baseX,baseY)
+            G(i,u) = sum(PSurvive)+PCrash*Nc;
+        else
+            G(i,u) = sum(P(i,1:end ~= baseInd,u))+ P(i,baseInd,u)*Nc;
+        end
+        end
+    end
+    
+    
+    function ind = state2ind(state, stateSpace)
+        ind = find(sum(stateSpace == state, 2) == 3);
+    end
+
+    function base = nextToBase(state,baseX,baseY)
+        %Function nextToBase, check if drone is next to the base 
+        % Inputs : 
+        %state : current state
+        %baseX,basey = map coordinates of base
+        %Output : true or false
+        delta = [NORTH, [0, 1];
+        SOUTH, [0, -1];
+        EAST, [1, 0];
+        WEST, [-1, 0]];
+        base = logical(sum(sum(repmat([state(1),state(2)],size(delta,1),1) == ...
+            repmat([baseX,baseY],size(delta,1),1)+delta(:,2:end),2) == 2));
+    end
+    
+
+
+
+
+    
+
+end
+
