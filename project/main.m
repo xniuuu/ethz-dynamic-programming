@@ -95,8 +95,8 @@ K=size(stateSpace,1);
 %% Set the following to true as you progress with the files
 transitionProbabilitiesImplemented = true;
 stageCostsImplemented = true;
-valueIterationImplemented = true; 
-policyIterationImplemented = false;
+valueIterationImplemented = false; 
+policyIterationImplemented = true;
 linearProgrammingImplemented = true;
 
 %% Compute the terminal state index
