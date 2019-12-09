@@ -23,6 +23,6 @@ disp([row, col]);
 %% Validate The Algorithms Implementation (V* is unique) 
 [JLp, ~] = LinearProgramming(P, G);
 [JVi, ~] = ValueIteration(P, G);
-[JPi, ~] = PolicyIteration(P, G);
-assert(range([JLp, JVi, JPi]) < 1e-3,...
+%[JPi, ~] = PolicyIteration(P, G);
+assert(range(range([JLp, JVi])) < 1e-3,...%, JPi
     'Discrepency between algorithms.');
