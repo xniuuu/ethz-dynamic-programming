@@ -42,7 +42,7 @@ global TERMINAL_STATE_INDEX
 policy = ones(1,K);
 policy(TERMINAL_STATE_INDEX) = HOVER;
 %cost and cost_to_go
-J = 1000*ones(1,K); 
+J = zeros(1,K); 
 cost_to_go = ones(1,K);
 
 %error bound
