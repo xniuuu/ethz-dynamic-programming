@@ -29,27 +29,27 @@ function [ J_opt, u_opt_ind ] = ValueIteration(P, G)
 %       	A (K x 1)-matrix containing the index of the optimal control
 %       	input for each element of the state space. Mapping of the
 %       	terminal state is arbitrary (for example: HOVER).
-global K NORTH SOUTH EAST WEST HOVER
-global TERMINAL_STATE_INDEX
-policy = HOVER * ones(K, 1);
-policy(TERMINAL_STATE_INDEX) = HOVER;
-% Initializing greedily.
-J = min(G, [], 2); 
-cost_to_go = ones(K, 1);
-err = 1e-5;
-while 1
-    values = Inf(K, 5);
-    for u = [NORTH SOUTH EAST WEST HOVER]
-        values(:, u) = G(:, u) + P(:, :, u) * J;
+    global K 
+    global NORTH SOUTH EAST WEST HOVER
+    global TERMINAL_STATE_INDEX
+    u_opt_ind = HOVER * ones(K, 1);
+    u_opt_ind(TERMINAL_STATE_INDEX) = HOVER;
+    % Initializing greedily.
+    J_opt = min(G, [], 2);
+    costToGo = ones(K, 1);
+    err = 1e-5;
+    while 1
+        values = Inf(K, 5);
+        for u = [NORTH SOUTH EAST WEST HOVER]
+            values(:, u) = G(:, u) + P(:, :, u) * J_opt;
+        end
+        [costToGo, u_opt_ind] = min(values, [], 2);
+        if norm(costToGo - J_opt, inf) < err
+            J_opt = costToGo;
+            break;
+        else
+            J_opt = costToGo;
+        end
     end
-    [cost_to_go, policy] = min(values, [], 2);
-    if (max(abs(J - cost_to_go))) / max(abs(cost_to_go)) < err
-        J = cost_to_go;
-        break;
-    else
-        J = cost_to_go;
-    end
-end
-J_opt = cost_to_go;
-u_opt_ind = policy;
+
 end

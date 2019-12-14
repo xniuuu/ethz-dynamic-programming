@@ -44,7 +44,7 @@ function [J_opt, u_opt_ind] = LinearProgramming(P, G)
         zeros(size(f)), Inf(size(f)));
     J_opt = [J_opt(1:(TERMINAL_STATE_INDEX - 1));
         0;
-        J_opt((TERMINAL_STATE_INDEX):end)];
+        J_opt(TERMINAL_STATE_INDEX:end)];
     V = zeros(K, 5);
     for u = [NORTH, SOUTH, EAST, WEST, HOVER]
         V(:, u) = G(:, u) + P(:, :, u) * J_opt;
