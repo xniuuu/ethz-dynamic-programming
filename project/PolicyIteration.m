@@ -29,37 +29,8 @@ function [J_opt, u_opt_ind] = PolicyIteration(P, G)
 %       	A (k x 1)-matrix containing the index of the optimal control
 %       	input for each element of the state space. Mapping of the
 %       	terminal state is arbitrary (for example: HOVER).
-    global NORTH SOUTH EAST WEST HOVER
-    global K 
-    global TERMINAL_STATE_INDEX
-    % Hopefully get a proper initial policy.
-    G(TERMINAL_STATE_INDEX, :) = [];
-    P(TERMINAL_STATE_INDEX, :, :) = [];
-    P(:, TERMINAL_STATE_INDEX, :) = [];
-    [J_opt, u_opt_ind] = min(G, [], 2);
-    Jh = ones(K - 1, 1);
-    while 1
-%         [A, b] = ResolveLinearSystem(u_opt_ind, P, G);
-%         Jh = A \ b;
-        Jh = ApproximateNextCostToGo(P, G, u_opt_ind, J_opt, 100);
-        values = Inf(K - 1, 5);
-        for u = [NORTH SOUTH EAST WEST HOVER]
-            values(:, u) = G(:, u) + P(:, :, u) * Jh;
-        end
-        [~, u_opt_ind] = min(values, [], 2);
-        if norm(Jh - J_opt, inf) <= 1e-5
-            J_opt = Jh;
-            break;
-        end
-        J_opt = Jh;
-    end
-    J_opt = [J_opt(1:(TERMINAL_STATE_INDEX - 1));
-    0;
-    J_opt(TERMINAL_STATE_INDEX:end)];
-    u_opt_ind = [u_opt_ind(1:(TERMINAL_STATE_INDEX - 1));
-        HOVER;
-        u_opt_ind(TERMINAL_STATE_INDEX:end)];
-end
+
+   
 
 global K HOVER NORTH EAST SOUTH WEST
 
@@ -72,15 +43,9 @@ global TERMINAL_STATE_INDEX
 
 %% Initializations
 
-%Hover is a proper policy
-%Ignoring end state cause P = 1
-% corresponding cost
-% P_corr = P(1:end ~=TERMINAL_STATE_INDEX,1:end ~=TERMINAL_STATE_INDEX,HOVER);
-% G_corr = G(1:end ~=TERMINAL_STATE_INDEX,HOVER);
-% J =(eye(size(P_corr,1),size(P_corr,1))-P_corr)\G_corr;
 
 %%iteration count
-it = 0;
+%it = 0;
 policy = HOVER.*ones(K-1,1);
 P = P(1:end ~=TERMINAL_STATE_INDEX,1:end ~=TERMINAL_STATE_INDEX,:);
 G = G(1:end ~=TERMINAL_STATE_INDEX,:);
@@ -90,7 +55,7 @@ G_corr = zeros(K-1,1);
 while 1
     
     %Iteration update
-    it = it + 1;
+    %it = it + 1;
     
     for i=1:K-1
         P_corr(i,:) = P(i,:,policy(i));
@@ -100,6 +65,11 @@ while 1
     J_new = (eye(size(P_corr,1),size(P_corr,1))-P_corr)\G_corr;
     
     if J_new==J
+        k=TERMINAL_STATE_INDEX-1;
+        J_opt=[J(1:k) ; 0;J(k+1:end)];
+        u_opt_ind = [policy(1:k) ; HOVER ; policy(k+1:end)];
+        break
+    elseif (norm(range([J_new, J], 2), inf) < 1e-3) && (it >= 1e2)
         k=TERMINAL_STATE_INDEX-1;
         J_opt=[J(1:k) ; 0;J(k+1:end)];
         u_opt_ind = [policy(1:k) ; HOVER ; policy(k+1:end)];
@@ -114,7 +84,7 @@ while 1
     end
     [cost_to_go, policy] = min(values, [], 2);
 end
-disp(it);
+%disp(it);
 end
 
 
