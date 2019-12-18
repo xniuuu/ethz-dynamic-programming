@@ -37,11 +37,12 @@ function [J_opt, u_opt_ind] = PolicyIteration(P, G)
     P(TERMINAL_STATE_INDEX, :, :) = [];
     P(:, TERMINAL_STATE_INDEX, :) = [];
     [J_opt, u_opt_ind] = min(G, [], 2);
+    u_opt_ind = HOVER * ones(K - 1, 1);
     Jh = ones(K - 1, 1);
     while 1
-%         [A, b] = ResolveLinearSystem(u_opt_ind, P, G);
-%         Jh = A \ b;
-        Jh = ApproximateNextCostToGo(P, G, u_opt_ind, J_opt, 100);
+        [A, b] = ResolveLinearSystem(u_opt_ind, P, G);
+        Jh = A \ b;
+%         Jh = ApproximateNextCostToGo(P, G, u_opt_ind, J_opt, 100);
         values = Inf(K - 1, 5);
         for u = [NORTH SOUTH EAST WEST HOVER]
             values(:, u) = G(:, u) + P(:, :, u) * Jh;
