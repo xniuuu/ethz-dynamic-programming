@@ -30,7 +30,7 @@ function [ J_opt, u_opt_ind ] = PolicyIteration( P, G )
 %       	input for each element of the state space. Mapping of the
 %       	terminal state is arbitrary (for example: HOVER).
 
-global K HOVER
+global K HOVER NORTH EAST SOUTH WEST
 
 %% Handle terminal state
 % Do yo need to do something with the teminal state before starting policy
@@ -41,49 +41,47 @@ global TERMINAL_STATE_INDEX
 
 %% Initializations
 
-
-%policy, at the terminal state the optimal input is hover
-policy = ones(K,1);
-policy(TERMINAL_STATE_INDEX) = HOVER;
-
+%Hover is a proper policy
+%Ignoring end state cause P = 1
 % corresponding cost
-P_corr = zeros(K,K);
-G_corr = zeros(K,1);
-for i=1:K
-    P_corr(i,:) = P(i,:,policy(i));
-    G_corr(i) = G(i,policy(i));
-end
-J = linsolve((eye(476,476)-P_corr),G_corr);
+% P_corr = P(1:end ~=TERMINAL_STATE_INDEX,1:end ~=TERMINAL_STATE_INDEX,HOVER);
+% G_corr = G(1:end ~=TERMINAL_STATE_INDEX,HOVER);
+% J =(eye(size(P_corr,1),size(P_corr,1))-P_corr)\G_corr;
 
 %%iteration count
 it = 0;
-
+policy = HOVER.*ones(K-1,1);
+P = P(1:end ~=TERMINAL_STATE_INDEX,1:end ~=TERMINAL_STATE_INDEX,:);
+G = G(1:end ~=TERMINAL_STATE_INDEX,:);
+J = ones(K-1,1);
+P_corr= zeros(K-1,K-1);
+G_corr = zeros(K-1,1);
 while 1
     
     %Iteration update
     it = it + 1;
     
-    for i=1:K      
-        policy(i) = min(G(i,:) + J'*squeeze(P(i,:,:)));
+    for i=1:K-1
+        P_corr(i,:) = P(i,:,policy(i));
+        G_corr(i) = G(i,policy(i));
     end
     
-    P_corr_new = zeros(K,K);
-    G_corr_new = zeros(K,1);
-    
-    for i=1:K
-        P_corr_new(i,:) = P(i,:,policy(i));
-        G_corr_new(i) = G(i,policy(i));
-    end
-    
-    J_new = linsolve((eye(476,476)-P_corr_new),G_corr_new);
+    J_new = (eye(size(P_corr,1),size(P_corr,1))-P_corr)\G_corr;
     
     if J_new==J
-        J_opt=J;
-        u_opt_ind = policy;
+        k=TERMINAL_STATE_INDEX-1;
+        J_opt=[J(1:k) ; 0;J(k+1:end)];
+        u_opt_ind = [policy(1:k) ; HOVER ; policy(k+1:end)];
         break
     else
         J=J_new;
     end
+    
+    values = Inf(K-1, 5);
+    for u = [NORTH SOUTH EAST WEST HOVER]
+        values(:, u) = G(:, u) + P(:, :, u) * J;
+    end
+    [cost_to_go, policy] = min(values, [], 2);
 end
 disp(it);
 end
