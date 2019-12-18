@@ -29,64 +29,63 @@ function [J_opt, u_opt_ind] = PolicyIteration(P, G)
 %       	A (k x 1)-matrix containing the index of the optimal control
 %       	input for each element of the state space. Mapping of the
 %       	terminal state is arbitrary (for example: HOVER).
-    global NORTH SOUTH EAST WEST HOVER
-    global K 
-    global TERMINAL_STATE_INDEX
-    % Hopefully get a proper initial policy.
-    G(TERMINAL_STATE_INDEX, :) = [];
-    P(TERMINAL_STATE_INDEX, :, :) = [];
-    P(:, TERMINAL_STATE_INDEX, :) = [];
-    [J_opt, u_opt_ind] = min(G, [], 2);
-    u_opt_ind = HOVER * ones(K - 1, 1);
-    Jh = ones(K - 1, 1);
-    while 1
-        [A, b] = ResolveLinearSystem(u_opt_ind, P, G);
-        Jh = A \ b;
-%         Jh = ApproximateNextCostToGo(P, G, u_opt_ind, J_opt, 100);
-        values = Inf(K - 1, 5);
-        for u = [NORTH SOUTH EAST WEST HOVER]
-            values(:, u) = G(:, u) + P(:, :, u) * Jh;
-        end
-        [~, u_opt_ind] = min(values, [], 2);
-        if norm(Jh - J_opt, inf) <= 1e-5
-            J_opt = Jh;
-            break;
-        end
-        J_opt = Jh;
+
+global K HOVER
+
+%% Handle terminal state
+% Do yo need to do something with the teminal state before starting policy
+% iteration?
+global TERMINAL_STATE_INDEX
+% IMPORTANT: You can use the global variable TERMINAL_STATE_INDEX computed
+% in the ComputeTerminalStateIndex.m file (see main.m)
+
+%% Initializations
+
+
+%policy, at the terminal state the optimal input is hover
+policy = ones(K,1);
+policy(TERMINAL_STATE_INDEX) = HOVER;
+
+% corresponding cost
+P_corr = zeros(K,K);
+G_corr = zeros(K,1);
+for i=1:K
+    P_corr(i,:) = P(i,:,policy(i));
+    G_corr(i) = G(i,policy(i));
+end
+J = linsolve((eye(476,476)-P_corr),G_corr);
+
+%%iteration count
+it = 0;
+
+while 1
+    
+    %Iteration update
+    it = it + 1;
+    
+    for i=1:K      
+        policy(i) = min(G(i,:) + J'*squeeze(P(i,:,:)));
     end
-    J_opt = [J_opt(1:(TERMINAL_STATE_INDEX - 1));
-    0;
-    J_opt(TERMINAL_STATE_INDEX:end)];
-    u_opt_ind = [u_opt_ind(1:(TERMINAL_STATE_INDEX - 1));
-        HOVER;
-        u_opt_ind(TERMINAL_STATE_INDEX:end)];
+    
+    P_corr_new = zeros(K,K);
+    G_corr_new = zeros(K,1);
+    
+    for i=1:K
+        P_corr_new(i,:) = P(i,:,policy(i));
+        G_corr_new(i) = G(i,policy(i));
+    end
+    
+    J_new = linsolve((eye(476,476)-P_corr_new),G_corr_new);
+    
+    if J_new==J
+        J_opt=J;
+        u_opt_ind = policy;
+        break
+    else
+        J=J_new;
+    end
+end
+disp(it);
 end
 
-function [A, b] = ResolveLinearSystem(...
-    policy,...
-    transitionProbabilitiesTable,...
-    stageCosts)
-    global K
-    P = zeros(K - 1, K - 1);
-    b = zeros(K - 1, 1);
-    for i = 1:(K - 1)
-        P(i, :) = transitionProbabilitiesTable(i, :, policy(i));
-        b(i) = stageCosts(i, policy(i));
-    end
-    A = eye(K - 1, K - 1) - P;
-end
 
-function costToGo = ApproximateNextCostToGo(P, G, policy, J, n)
-    global NORTH SOUTH EAST WEST HOVER
-    costToGo = Inf(size(J));
-    for iter = 1:n
-        for u = [NORTH SOUTH EAST WEST HOVER]
-            costToGo(policy == u) =...
-                G(policy == u, u) + P(policy == u, :, u) * J;
-        end
-        if norm(J - costToGo, inf) / norm(J, inf) <= 1e-3
-            break;
-        end
-        J = costToGo;
-    end
-end
